@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本株 増配＆10年減配なし銘柄 自動更新トラッカー | 高配当株投資支援ダッシュボード</title>
+    <meta name="description" content="東京証券取引所の上場企業から増配（配当増額）を発表した銘柄を自動スクレイピング。10年以上減配なし（累進配当・非減配）の優良高配当銘柄を安心度順に自動抽出し毎日更新。">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Ambient Background Blobs -->
+    <div class="bg-ambient">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+        
+        <!-- Header Section -->
+        <header class="header">
+            <div class="header-brand">
+                <div class="brand-icon">🛡️</div>
+                <div class="brand-title">
+                    <h1>日本株 増配＆10年非減配トラッカー</h1>
+                    <p>
+                        <span>大引け後（16:30 JST）自動更新</span>
+                        <span class="badge-free">100% サーバー運用費0円</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="header-meta">
+                <div class="update-tag">
+                    <span class="pulse-dot"></span>
+                    <span>最終更新: <strong id="last-updated-time">2026-09-22 16:30</strong></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Summary Banner -->
+        <section class="stats-banner">
+            <div class="stat-card highlight">
+                <div class="stat-icon" style="color:#fbbf24;">🛡️</div>
+                <div class="stat-info">
+                    <div class="value" id="stat-champions">9</div>
+                    <div class="label">10年以上 減配なしチャンピオン</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#10b981;">📢</div>
+                <div class="stat-info">
+                    <div class="value" id="stat-total">12</div>
+                    <div class="label">本日修正の増配発表銘柄</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#3b82f6;">💎</div>
+                <div class="stat-info">
+                    <div class="value" id="stat-avg-yield">3.32%</div>
+                    <div class="label">抽出銘柄の平均予想配当利回り</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="color:#8b5cf6;">💰</div>
+                <div class="stat-info">
+                    <div class="value">7</div>
+                    <div class="label">自社株買い同時発表銘柄</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Control Panel: Tabs & Filters -->
+        <section class="control-panel">
+            <div class="tabs-wrapper">
+                <button class="tab-btn active" data-tab="safety">
+                    <i data-lucide="shield-check"></i> 10年減配なし優良銘柄 <span class="tab-badge">安心度優先</span>
+                </button>
+                <button class="tab-btn" data-tab="all">
+                    <i data-lucide="megaphone"></i> 全・増配発表銘柄 <span class="tab-badge">新着順</span>
+                </button>
+                <button class="tab-btn" data-tab="yield">
+                    <i data-lucide="trending-up"></i> 高配当順
+                </button>
+                <button class="tab-btn" data-tab="growth">
+                    <i data-lucide="zap"></i> 増配率順
+                </button>
+                <button class="tab-btn" data-tab="watchlist">
+                    <i data-lucide="star"></i> ウォッチリスト
+                </button>
+                <button class="tab-btn" data-tab="simulator">
+                    <i data-lucide="calculator"></i> 配当金シミュレーター
+                </button>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label for="search-input">銘柄コード・社名で検索</label>
+                    <input type="text" id="search-input" class="form-input" placeholder="例: 8593, 伊藤忠, KDDI...">
+                </div>
+
+                <div class="filter-group">
+                    <label for="sector-filter">業種で絞り込み</label>
+                    <select id="sector-filter" class="form-select">
+                        <option value="">全ての業種</option>
+                        <option value="その他金融業">その他金融業</option>
+                        <option value="卸売業">卸売業</option>
+                        <option value="情報・通信業">情報・通信業</option>
+                        <option value="保険業">保険業</option>
+                        <option value="銀行業">銀行業</option>
+                        <option value="化学">化学</option>
+                        <option value="電気機器">電気機器</option>
+                        <option value="輸送用機器">輸送用機器</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="ex-month-filter">次回権利確定月</label>
+                    <select id="ex-month-filter" class="form-select">
+                        <option value="">全ての権利月</option>
+                        <option value="3月">3月権利</option>
+                        <option value="9月">9月権利</option>
+                        <option value="12月">12月権利</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="payout-filter">配当性向の安全度</label>
+                    <select id="payout-filter" class="form-select">
+                        <option value="">全ての配当性向</option>
+                        <option value="safe">50%以下の安全圏のみ</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Simulator View (Initially Hidden) -->
+        <section id="simulator-panel" class="simulator-panel" style="display: none;">
+            <h2 style="font-size: 1.3rem; margin-bottom: 8px; color: #fbbf24; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="calculator"></i> 10年非減配ポートフォリオ 年間配当金シミュレーター
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                10年以上減配なし（累進配当）の安心優良株に投資した場合の想定年間配当金を計算できます。
+            </p>
+
+            <div class="sim-grid">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">
+                        投資予定金額 (円)
+                    </label>
+                    <input type="number" id="sim-amount-input" class="form-input" value="1000000" step="100000" style="font-size: 1.2rem; font-weight: 700;">
+                    
+                    <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="form-input" style="width: auto; padding: 6px 14px; cursor: pointer;" onclick="document.getElementById('sim-amount-input').value = 500000; calculateDividendSimulation();">50万円</button>
+                        <button class="form-input" style="width: auto; padding: 6px 14px; cursor: pointer;" onclick="document.getElementById('sim-amount-input').value = 1000000; calculateDividendSimulation();">100万円</button>
+                        <button class="form-input" style="width: auto; padding: 6px 14px; cursor: pointer;" onclick="document.getElementById('sim-amount-input').value = 3000000; calculateDividendSimulation();">300万円</button>
+                        <button class="form-input" style="width: auto; padding: 6px 14px; cursor: pointer;" onclick="document.getElementById('sim-amount-input').value = 5000000; calculateDividendSimulation();">500万円</button>
+                    </div>
+                </div>
+
+                <div class="sim-output">
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">受け取れる想定年間不労所得 (税引前)</div>
+                    <div class="annual-payout-box" id="sim-annual-payout">¥33,500 / 年</div>
+                    <div style="font-size: 0.8rem; color: var(--accent-emerald);" id="sim-avg-yield">(推定平均配当利回り: 3.35%)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stocks Grid Section -->
+        <section id="stocks-section">
+            <div class="stocks-header">
+                <h2 class="stocks-title" id="view-title">🛡️ 10年以上 減配なし優良銘柄 <span class="badge-free">安心度順</span></h2>
+                <span class="result-count" id="result-count">9件を表示中</span>
+            </div>
+
+            <div class="stocks-grid" id="stocks-grid">
+                <!-- Javascript will inject cards here -->
+            </div>
+        </section>
+
+        <!-- Stock Detail Modal -->
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="modal-content">
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+                <div id="modal-body-content">
+                    <!-- Javascript injected details -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>日本株 増配＆10年非減配トラッカー — TDnet 適時開示自動連携システム</p>
+            <p style="margin-top: 6px;">
+                ホスティング: <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages (完全無料)</a> | 
+                自動更新: GitHub Actions (平日16:30 Cron実行)
+            </p>
+        </footer>
+
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

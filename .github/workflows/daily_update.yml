@@ -1,0 +1,34 @@
+name: Daily Dividend Increase Tracker Update
+
+on:
+  schedule:
+    # 平日 16:30 JST (07:30 UTC) に自動実行
+    - cron: '30 7 * * 1-5'
+  workflow_dispatch: # 手動実行ボタンも提供
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run disclosure fetcher
+        run: |
+          python scripts/fetch_disclosures.py
+
+      - name: Commit and push updated data
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add data/disclosures.json
+          git diff-index --quiet HEAD || git commit -m "Auto-update: Dividend disclosures $(date +'%Y-%m-%d %H:%M JST')"
+          git push
