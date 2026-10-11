@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JAPAN GROWTH VALUE AI (JGVA) - 日本株・将来成長×割安企業発掘AI</title>
+  
+  <!-- Fonts: Outfit & Noto Sans JP -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;800;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Background Gradients -->
+  <div class="bg-decor bg-decor-1"></div>
+  <div class="bg-decor bg-decor-2"></div>
+  <div class="bg-decor bg-decor-3"></div>
+
+  <!-- Header Navigation -->
+  <header class="header-app">
+    <div class="header-container">
+      <div class="logo-box" onclick="switchView('dashboard')">
+        <div class="logo-icon"><i data-lucide="trending-up"></i></div>
+        <div class="logo-title">
+          <h1>JAPAN GROWTH VALUE AI</h1>
+          <span>JGVA Ver.1 | 日本株約4,000銘柄・将来成長×割安発掘</span>
+        </div>
+      </div>
+
+      <nav class="nav-desktop">
+        <button class="nav-btn active" onclick="switchView('dashboard')"><i data-lucide="layout-dashboard"></i> ダッシュボード</button>
+        <button class="nav-btn" onclick="switchView('matrix')"><i data-lucide="grid"></i> 2Dマトリクス</button>
+        <button class="nav-btn" onclick="switchView('screener')"><i data-lucide="sliders"></i> スクリーナー</button>
+        <button class="nav-btn" onclick="switchView('discoveries')"><i data-lucide="sparkles"></i> 成長転換・新規発見</button>
+        <button class="nav-btn" onclick="switchView('backtest')"><i data-lucide="line-chart"></i> バックテスト</button>
+      </nav>
+
+      <div class="header-actions">
+        <button class="theme-btn" id="theme-toggle-btn" title="テーマ切り替え" onclick="toggleTheme()">
+          <i data-lucide="sun"></i>
+        </button>
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <div class="modal-overlay" id="mobile-drawer" onclick="toggleMobileMenu()">
+    <div class="modal-content" style="max-width: 320px; height: 100vh; margin-left: auto; border-radius: 0;" onclick="event.stopPropagation()">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="font-weight: 800;">JGVA メニュー</h3>
+        <button class="modal-close-btn" onclick="toggleMobileMenu()"><i data-lucide="x"></i></button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <button class="nav-btn" onclick="switchView('dashboard'); toggleMobileMenu()"><i data-lucide="layout-dashboard"></i> ダッシュボード</button>
+        <button class="nav-btn" onclick="switchView('matrix'); toggleMobileMenu()"><i data-lucide="grid"></i> 2Dマトリクス</button>
+        <button class="nav-btn" onclick="switchView('screener'); toggleMobileMenu()"><i data-lucide="sliders"></i> 全銘柄スクリーナー</button>
+        <button class="nav-btn" onclick="switchView('discoveries'); toggleMobileMenu()"><i data-lucide="sparkles"></i> 成長転換・新規発見</button>
+        <button class="nav-btn" onclick="switchView('backtest'); toggleMobileMenu()"><i data-lucide="line-chart"></i> バックテスト検証</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+
+    <!-- View 1: Dashboard -->
+    <section id="view-dashboard" class="view-panel active">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title"><i data-lucide="database"></i> 分析対象銘柄数</div>
+          <div class="kpi-value" id="kpi-total-stocks">3,885</div>
+          <div class="kpi-subtext">Prime / Standard / Growth 全対応</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title"><i data-lucide="sparkles"></i> 今日の高成長×割安 (Cat A)</div>
+          <div class="kpi-value" id="kpi-cat-a-count" style="color: var(--category-a);">142</div>
+          <div class="kpi-subtext">成長性 70+ × 割安度 65+</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title"><i data-lucide="zap"></i> 成長転換銘柄 (Inflection)</div>
+          <div class="kpi-value" id="kpi-inflection-count" style="color: var(--category-d);">85</div>
+          <div class="kpi-subtext">営業利益加速 20%+</div>
+        </div>
+        <div class="kpi-card" onclick="openUpdateInfoModal()" style="cursor: pointer;" title="クリックして更新頻度・運用仕様を確認">
+          <div class="kpi-title"><i data-lucide="clock"></i> 最新分析更新日時 <span class="badge" style="background: rgba(56,189,248,0.2); color: var(--accent-blue); margin-left: auto; font-size: 0.65rem;">更新仕様</span></div>
+          <div class="kpi-value" style="font-size: 1.2rem; margin-top: 0.4rem;" id="kpi-updated-at">2026-10-11 15:30</div>
+          <div class="kpi-subtext" style="color: var(--accent-blue);">日次/四半期/月次更新仕様を表示 →</div>
+        </div>
+      </div>
+
+      <!-- Quick Category Matrix Banner -->
+      <div class="matrix-container">
+        <div class="matrix-header">
+          <div>
+            <h3 style="font-size: 1.2rem; font-weight: 800;"><i data-lucide="grid"></i> 成長性 × 割安度 2Dマトリクス分布</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">セルをクリックすると該当カテゴリーの銘柄一覧に移動します</p>
+          </div>
+          <button class="nav-btn" style="background: var(--bg-card);" onclick="switchView('matrix')">詳細マトリクスを見る →</button>
+        </div>
+
+        <div class="matrix-grid-3x3">
+          <div class="matrix-axis-label">高成長</div>
+          <div class="matrix-cell cat-c" onclick="filterByMatrix('Category C')">
+            <span class="cell-tag badge-cat-c">Category C</span>
+            <div class="cell-count" id="count-cat-c">0</div>
+            <div class="cell-desc">高成長 × 割高 (過熱気味)</div>
+          </div>
+          <div class="matrix-cell cat-b" onclick="filterByMatrix('Category B')">
+            <span class="cell-tag badge-cat-b">Category B</span>
+            <div class="cell-count" id="count-cat-b">0</div>
+            <div class="cell-desc">高成長 × 適正評価</div>
+          </div>
+          <div class="matrix-cell cat-a" onclick="filterByMatrix('Category A')">
+            <span class="cell-tag badge-cat-a">Category A</span>
+            <div class="cell-count" id="count-cat-a">0</div>
+            <div class="cell-desc">★ 高成長 × 割安 (最注目)</div>
+          </div>
+
+          <div class="matrix-axis-label">中成長</div>
+          <div class="matrix-cell cat-g" onclick="filterByMatrix('Category G')">
+            <span class="cell-tag badge-cat-g">Category G</span>
+            <div class="cell-count" id="count-cat-g">0</div>
+            <div class="cell-desc">中成長 × 割高</div>
+          </div>
+          <div class="matrix-cell cat-e" onclick="filterByMatrix('Category E')">
+            <span class="cell-tag badge-cat-e">Category E</span>
+            <div class="cell-count" id="count-cat-e">0</div>
+            <div class="cell-desc">★ 業績改善 × 割安 (Turnaround)</div>
+          </div>
+          <div class="matrix-cell cat-d" onclick="filterByMatrix('Category D')">
+            <span class="cell-tag badge-cat-d">Category D</span>
+            <div class="cell-count" id="count-cat-d">0</div>
+            <div class="cell-desc">★ 成長転換 × 割安 (Inflection)</div>
+          </div>
+
+          <div class="matrix-axis-label">低成長</div>
+          <div class="matrix-cell cat-f" onclick="filterByMatrix('Category F')">
+            <span class="cell-tag badge-cat-f">Category F</span>
+            <div class="cell-count" id="count-cat-f">0</div>
+            <div class="cell-desc">低成長 × 割高</div>
+          </div>
+          <div class="matrix-cell cat-f" onclick="filterByMatrix('Category F')">
+            <span class="cell-tag badge-cat-f">Category F</span>
+            <div class="cell-count" id="count-cat-f-2">0</div>
+            <div class="cell-desc">低成長 × 中バリュ</div>
+          </div>
+          <div class="matrix-cell cat-f" onclick="filterByMatrix('Category F')">
+            <span class="cell-tag badge-cat-f">Category F</span>
+            <div class="cell-count" id="count-cat-f-3">0</div>
+            <div class="cell-desc">割安だが成長弱 (バリュートラップ)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Top Picks Tables -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+        <div class="analysis-box">
+          <h4><i data-lucide="star"></i> 本日の注目【Category A: 高成長×割安】Top 5</h4>
+          <div id="dash-top-cat-a"></div>
+        </div>
+
+        <div class="analysis-box">
+          <h4><i data-lucide="zap"></i> 本日の【成長転換 (Growth Inflection)】Top 5</h4>
+          <div id="dash-top-inflection"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 2: 2D Matrix View -->
+    <section id="view-matrix" class="view-panel">
+      <div class="matrix-container">
+        <h2 style="font-weight: 800; font-size: 1.4rem; margin-bottom: 0.5rem;"><i data-lucide="grid"></i> 全3,885銘柄 成長性 × 割安度 2Dマトリクス詳細</h2>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">
+          縦軸（成長性スコア）と横軸（割安度スコア）によって約4,000社を分類。単なる低PER（バリュートラップ）ではなく「成長性が高く株価評価が追いついていない銘柄」を別枠で抽出します。
+        </p>
+
+        <div id="matrix-filtered-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <h3 id="matrix-active-cat-title" style="font-size: 1.1rem; font-weight: 700;">選択中: 全カテゴリー</h3>
+          <button class="badge" style="background: var(--bg-primary); cursor: pointer;" onclick="filterByMatrix('ALL')">フィルター解除</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="stock-table">
+            <thead>
+              <tr>
+                <th>コード</th>
+                <th>銘柄名</th>
+                <th>市場</th>
+                <th>業種</th>
+                <th>株価</th>
+                <th>PER</th>
+                <th>成長性スコア</th>
+                <th>割安度スコア</th>
+                <th>カテゴリー</th>
+                <th>主要テーマ</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 3: Screener View -->
+    <section id="view-screener" class="view-panel">
+      <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem;"><i data-lucide="sliders"></i> 日本株全銘柄スクリーナー</h2>
+      
+      <!-- Filter Bar -->
+      <div class="screener-bar">
+        <div class="search-input-box">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="screener-search-input" placeholder="銘柄コード・企業名・業種で検索..." oninput="applyScreenerFilters()">
+        </div>
+
+        <select class="filter-select" id="filter-market" onchange="applyScreenerFilters()">
+          <option value="ALL">全市場 (Prime/Standard/Growth)</option>
+          <option value="Prime">東証 Prime</option>
+          <option value="Standard">東証 Standard</option>
+          <option value="Growth">東証 Growth</option>
+        </select>
+
+        <select class="filter-select" id="filter-category" onchange="applyScreenerFilters()">
+          <option value="ALL">全カテゴリー</option>
+          <option value="Category A">Category A (高成長×割安)</option>
+          <option value="Category D">Category D (成長転換×割安)</option>
+          <option value="Category E">Category E (業績改善×割安)</option>
+          <option value="Category B">Category B (高成長×適正)</option>
+          <option value="Category C">Category C (高成長×割高)</option>
+          <option value="Category F">Category F (割安だが成長弱)</option>
+        </select>
+
+        <select class="filter-select" id="filter-theme" onchange="applyScreenerFilters()">
+          <option value="ALL">全社会トレンドテーマ</option>
+          <option value="AI">AI</option>
+          <option value="半導体">半導体</option>
+          <option value="データセンター">データセンター</option>
+          <option value="防衛">防衛</option>
+          <option value="自動化">自動化・省人化</option>
+          <option value="宇宙">宇宙</option>
+          <option value="再生可能エネルギー">再エネ・蓄電池</option>
+        </select>
+
+        <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+          <input type="checkbox" id="filter-inflection" onchange="applyScreenerFilters()"> 成長転換(Inflection)のみ
+        </label>
+        <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+          <input type="checkbox" id="filter-discovery" onchange="applyScreenerFilters()"> 新規発見(New)のみ
+        </label>
+      </div>
+
+      <div style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-secondary);">
+        検索結果: <strong id="screener-count-badge" style="color: var(--accent-blue);">0</strong> 件の銘柄がヒット
+      </div>
+
+      <!-- Table for Desktop -->
+      <div class="table-wrapper">
+        <table class="stock-table">
+          <thead>
+            <tr>
+              <th onclick="sortTable('code')">コード</th>
+              <th onclick="sortTable('name')">銘柄名</th>
+              <th onclick="sortTable('market')">市場</th>
+              <th onclick="sortTable('sector')">業種</th>
+              <th onclick="sortTable('price')">株価</th>
+              <th onclick="sortTable('per')">PER</th>
+              <th onclick="sortTable('pbr')">PBR</th>
+              <th onclick="sortTable('sales_growth_1y')">売上成長</th>
+              <th onclick="sortTable('op_income_growth_1y')">営業益成長</th>
+              <th onclick="sortTable('growth_score')">成長スコア</th>
+              <th onclick="sortTable('valuation_score')">割安スコア</th>
+              <th onclick="sortTable('total_score')">総合</th>
+              <th>分析分類</th>
+            </tr>
+          </thead>
+          <tbody id="screener-table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card Grid View -->
+      <div class="mobile-card-grid" id="screener-mobile-cards"></div>
+    </section>
+
+    <!-- View 4: Discoveries & Inflection -->
+    <section id="view-discoveries" class="view-panel">
+      <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem;"><i data-lucide="sparkles"></i> 成長転換 (Growth Inflection) & 新規発見</h2>
+      <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">
+        業績成長が加速している一方で、市場の株価・PER評価がまだ本格追随していない「評価遅延（Market Disconnect）」の兆候を示す企業群です。
+      </p>
+
+      <div id="discoveries-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.2rem;"></div>
+    </section>
+
+    <!-- View 5: Backtest Engine -->
+    <section id="view-backtest" class="view-panel">
+      <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem;"><i data-lucide="line-chart"></i> バックテスト検証 (Look-ahead Bias排除)</h2>
+      <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">
+        過去3年間の適時開示・有価証券報告書公表日時を厳密に管理し、将来情報を過去の判定に利用しないルールで検証された各カテゴリーのリターンおよび指標です。
+      </p>
+
+      <div class="backtest-grid" id="backtest-category-cards"></div>
+
+      <div class="analysis-box" style="margin-top: 1.5rem;">
+        <h4><i data-lucide="trending-up"></i> 累積パフォーマンス推移 (TOPIXベンチマーク比較)</h4>
+        <div style="height: 300px; display: flex; align-items: flex-end; gap: 1.5rem; padding: 1.5rem; background: var(--bg-primary); border-radius: var(--radius-md); overflow-x: auto;" id="backtest-bar-chart">
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Stock Detail Modal -->
+  <div class="modal-overlay" id="stock-detail-modal" onclick="closeStockModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeStockModal()"><i data-lucide="x"></i></button>
+      
+      <div class="modal-header-box">
+        <div class="modal-stock-title">
+          <h2 id="modal-code-name">----</h2>
+          <div class="modal-stock-meta">
+            <span id="modal-market">--</span> | <span id="modal-sector">--</span> | 時価総額: <span id="modal-mcap">--</span> 億円
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 1.5rem; font-weight: 800;" id="modal-price">¥--</div>
+          <span class="badge badge-cat-a" id="modal-cat-badge">Category A</span>
+        </div>
+      </div>
+
+      <!-- Score Bar Meter -->
+      <div class="modal-grid-2col">
+        <div class="analysis-box">
+          <h4><i data-lucide="award"></i> スコア評価内訳</h4>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                <span>成長性スコア</span>
+                <strong id="modal-score-growth">0 / 100</strong>
+              </div>
+              <div style="height: 8px; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden; margin-top: 0.2rem;">
+                <div id="modal-bar-growth" style="height: 100%; background: var(--accent-emerald); width: 0%;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                <span>割安度スコア</span>
+                <strong id="modal-score-val">0 / 100</strong>
+              </div>
+              <div style="height: 8px; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden; margin-top: 0.2rem;">
+                <div id="modal-bar-val" style="height: 100%; background: var(--accent-blue); width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analysis-box">
+          <h4><i data-lucide="pie-chart"></i> バリュエーション指標</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem; margin-top: 0.5rem;">
+            <div>現在PER: <strong id="modal-per">--</strong> 倍</div>
+            <div>自社5年中央値: <strong id="modal-hist-per">--</strong> 倍</div>
+            <div>PBR: <strong id="modal-pbr">--</strong> 倍</div>
+            <div>PEG: <strong id="modal-peg">--</strong></div>
+            <div>EV/EBITDA: <strong id="modal-ev-ebitda">--</strong></div>
+            <div>配当利回り: <strong id="modal-div">--</strong>%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Qualitative Breakdown per Specification -->
+      <div class="analysis-box">
+        <h4><i data-lucide="bot"></i> AI定性要因解釈（事実・解釈・不確実性の分離）</h4>
+        <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem;">
+          <div style="border-left: 3px solid var(--accent-emerald); padding-left: 0.6rem;">
+            <strong style="color: var(--accent-emerald);">【公表事実 (Fact)】:</strong> <span id="modal-ai-fact">--</span>
+          </div>
+          <div style="border-left: 3px solid var(--accent-blue); padding-left: 0.6rem;">
+            <strong style="color: var(--accent-blue);">【業績影響解釈 (Interpretation)】:</strong> <span id="modal-ai-interpretation">--</span>
+          </div>
+          <div style="border-left: 3px solid var(--accent-amber); padding-left: 0.6rem;">
+            <strong style="color: var(--accent-amber);">【不確実性・リスク (Uncertainty)】:</strong> <span id="modal-ai-uncertainty">--</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-grid-2col">
+        <div class="analysis-box">
+          <h4><i data-lucide="flame"></i> 主な成長カタリスト</h4>
+          <ul id="modal-catalysts-list" style="padding-left: 1.2rem; font-size: 0.85rem; line-height: 1.6;"></ul>
+        </div>
+        <div class="analysis-box">
+          <h4><i data-lucide="alert-triangle"></i> 主な注意点・リスク</h4>
+          <ul id="modal-risks-list" style="padding-left: 1.2rem; font-size: 0.85rem; line-height: 1.6;"></ul>
+        </div>
+      </div>
+
+      <!-- Financial History Table -->
+      <div class="analysis-box">
+        <h4><i data-lucide="table"></i> 財務・業績推移 (5期)</h4>
+        <div style="overflow-x: auto; margin-top: 0.5rem;">
+          <table style="width: 100%; font-size: 0.8rem; text-align: right; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary);">
+                <th style="text-align: left; padding: 0.4rem;">決算期</th>
+                <th>売上高(百万円)</th>
+                <th>営業益(百万円)</th>
+                <th>EPS(円)</th>
+                <th>PER(倍)</th>
+              </tr>
+            </thead>
+            <tbody id="modal-financial-history-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Update Schedule & Zero-Cost Info Modal -->
+  <div class="modal-overlay" id="update-info-modal" onclick="closeUpdateInfoModal()">
+    <div class="modal-content" style="max-width: 650px;" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeUpdateInfoModal()"><i data-lucide="x"></i></button>
+      <h3 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="refresh-cw" style="color: var(--accent-blue);"></i> 更新頻度とAntigravity制限時の動作仕様
+      </h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.2rem;">
+        本システムは完全無料かつスタンドアロン（ローカル完結）で稼働するよう設計されています。
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.85rem;">
+        <div class="analysis-box">
+          <h4 style="color: var(--accent-blue);"><i data-lucide="calendar"></i> データの更新頻度</h4>
+          <ul style="padding-left: 1.2rem; line-height: 1.8; margin-top: 0.4rem;">
+            <li><strong>株価・バリュエーション (PER, PBR, 時価総額):</strong> 毎営業日・市場終了後 (15:30〜) の<strong>日次更新</strong></li>
+            <li><strong>財務指標・決算成長率・AI定性文章:</strong> 本決算・四半期短信の公表時（四半期毎）</li>
+            <li><strong>東証上場銘柄マスター (全3,897社):</strong> 毎月第3営業日（JPX公式発表データに準拠）</li>
+          </ul>
+        </div>
+
+        <div class="analysis-box">
+          <h4 style="color: var(--accent-emerald);"><i data-lucide="shield-check"></i> Antigravity制限時でも動く仕組み</h4>
+          <p style="line-height: 1.7; margin-top: 0.4rem;">
+            本システムはすべての銘柄マスター（3,897社）およびスコア計算結果がローカルの <code>data/stocks_data.js</code> に保存されているため、<strong>Antigravityの利用枠制限やAIトークン上限がかかった状態でも、ブラウザを開くだけで100%全機能が永続的に利用可能</strong>です。
+          </p>
+          <div style="margin-top: 0.6rem; padding: 0.6rem; background: rgba(16,185,129,0.15); border-radius: 8px; border: 1px solid rgba(16,185,129,0.3); color: var(--accent-emerald); line-height: 1.6;">
+            ✓ 外部サーバー費用: <strong>0円 (完全無料)</strong><br>
+            ✓ データの最新化: フォルダ内の <code>update_data.bat</code> をダブルクリックするだけで、Antigravityを介さずJPX公式から直接自動更新されます。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Script -->
+  <script src="data/stocks_data.js"></script>
+  <!-- Application Controller JS -->
+  <script src="app.js"></script>
+</body>
+</html>
