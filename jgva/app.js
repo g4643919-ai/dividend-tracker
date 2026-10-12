@@ -229,13 +229,96 @@ function applyScreenerFilters() {
   renderScreenerMobileCards();
 }
 
+const COLUMN_NAMES_JA = {
+  'growth_score': '成長性スコア',
+  'valuation_score': '割安度スコア',
+  'total_score': '総合スコア',
+  'op_income_growth_1y': '営業利益成長率',
+  'sales_growth_1y': '売上高成長率',
+  'per': 'PER (株価収益率)',
+  'pbr': 'PBR (純資産倍率)',
+  'peg': 'PEGレシオ',
+  'market_cap': '時価総額',
+  'price': '株価',
+  'roic': 'ROIC',
+  'dividend_yield': '配当利回り',
+  'code': '銘柄コード',
+  'name': '企業名'
+};
+
+function changeSortColumn(colName) {
+  currentSortColumn = colName;
+  updateSortControlsUI();
+  applyScreenerFilters();
+}
+
+function changeSortDirection(dir) {
+  sortDirection = dir === 'desc' ? -1 : 1;
+  updateSortControlsUI();
+  applyScreenerFilters();
+}
+
+function setQuickSort(colName, dir) {
+  currentSortColumn = colName;
+  sortDirection = dir === 'desc' ? -1 : 1;
+  
+  // Highlight quick sort buttons
+  document.querySelectorAll('.quick-sort-btn').forEach(btn => btn.classList.remove('active'));
+  const btnMap = {
+    'growth_score': 'btn-sort-growth',
+    'valuation_score': 'btn-sort-val',
+    'total_score': 'btn-sort-total',
+    'op_income_growth_1y': 'btn-sort-op',
+    'per': 'btn-sort-per',
+    'market_cap': 'btn-sort-mcap'
+  };
+  const activeBtnId = btnMap[colName];
+  if (activeBtnId && document.getElementById(activeBtnId)) {
+    document.getElementById(activeBtnId).classList.add('active');
+  }
+
+  updateSortControlsUI();
+  applyScreenerFilters();
+}
+
+function updateSortControlsUI() {
+  const colSelect = document.getElementById('sort-column');
+  if (colSelect) colSelect.value = currentSortColumn;
+
+  const dirSelect = document.getElementById('sort-direction');
+  if (dirSelect) dirSelect.value = sortDirection === -1 ? 'desc' : 'asc';
+
+  const dirText = sortDirection === -1 ? '高い順 (降順 ▼)' : '低い順 (昇順 ▲)';
+  const colNameJa = COLUMN_NAMES_JA[currentSortColumn] || currentSortColumn;
+  const dispEl = document.getElementById('current-sort-display');
+  if (dispEl) {
+    dispEl.textContent = `並び替え: ${colNameJa} (${dirText})`;
+  }
+
+  // Update table header arrows
+  document.querySelectorAll('.stock-table th').forEach(th => {
+    const col = th.getAttribute('data-col');
+    const ind = th.querySelector('.sort-indicator');
+    if (ind) {
+      if (col === currentSortColumn) {
+        ind.textContent = sortDirection === -1 ? ' ▼' : ' ▲';
+        ind.style.color = 'var(--accent-blue)';
+      } else {
+        ind.textContent = '';
+      }
+    }
+  });
+}
+
 function sortTable(colName) {
   if (currentSortColumn === colName) {
     sortDirection *= -1;
   } else {
     currentSortColumn = colName;
-    sortDirection = -1;
+    // Default to lowest first for PER and PBR, otherwise highest first
+    sortDirection = (colName === 'per' || colName === 'pbr') ? 1 : -1;
   }
+  updateSortControlsUI();
   applyScreenerFilters();
 }
 
@@ -262,14 +345,33 @@ function renderScreenerTable() {
 
 function renderScreenerMobileCards() {
   const container = document.getElementById('screener-mobile-cards');
-  container.innerHTML = filteredStocks.slice(0, 30).map(s => `
+  
+  const getSortMetricBadge = (s) => {
+    switch (currentSortColumn) {
+      case 'per': return `<span class="badge" style="background: rgba(56,189,248,0.2); color: var(--accent-blue); font-weight:800;">PER: ${s.per}倍</span>`;
+      case 'pbr': return `<span class="badge" style="background: rgba(56,189,248,0.2); color: var(--accent-blue); font-weight:800;">PBR: ${s.pbr}倍</span>`;
+      case 'op_income_growth_1y': return `<span class="badge" style="background: rgba(16,185,129,0.2); color: var(--accent-emerald); font-weight:800;">営業益: +${s.op_income_growth_1y}%</span>`;
+      case 'sales_growth_1y': return `<span class="badge" style="background: rgba(16,185,129,0.2); color: var(--accent-emerald); font-weight:800;">売上: +${s.sales_growth_1y}%</span>`;
+      case 'market_cap': return `<span class="badge" style="background: rgba(168,85,247,0.2); color: var(--accent-purple); font-weight:800;">時価総額: ${s.market_cap.toLocaleString()}億</span>`;
+      case 'price': return `<span class="badge" style="background: rgba(245,158,11,0.2); color: var(--accent-amber); font-weight:800;">株価: ¥${s.price.toLocaleString()}</span>`;
+      case 'total_score': return `<span class="badge" style="background: rgba(245,158,11,0.2); color: var(--accent-amber); font-weight:800;">総合: ${s.total_score}点</span>`;
+      case 'growth_score': return `<span class="badge" style="background: rgba(16,185,129,0.2); color: var(--accent-emerald); font-weight:800;">成長: ${s.growth_score}点</span>`;
+      case 'valuation_score': return `<span class="badge" style="background: rgba(56,189,248,0.2); color: var(--accent-blue); font-weight:800;">割安: ${s.valuation_score}点</span>`;
+      default: return '';
+    }
+  };
+
+  container.innerHTML = filteredStocks.slice(0, 50).map(s => `
     <div class="stock-card-mobile" onclick="openStockModal('${s.code}')">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
         <div>
           <strong style="color: var(--accent-blue); font-size: 1rem;">${s.code}</strong>
           <strong style="font-size: 1.05rem; margin-left: 0.3rem;">${s.name}</strong>
         </div>
-        <span class="badge badge-cat-${s.category_id.toLowerCase().replace(' ', '-')}">${s.category_label}</span>
+        <div style="display: flex; gap: 0.3rem; align-items: center;">
+          ${getSortMetricBadge(s)}
+          <span class="badge badge-cat-${s.category_id.toLowerCase().replace(' ', '-')}">${s.category_label}</span>
+        </div>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.6rem;">
         <span>${s.market} | ${s.sector}</span>
@@ -283,6 +385,10 @@ function renderScreenerMobileCards() {
         <div style="flex: 1; background: rgba(0,0,0,0.2); padding: 0.4rem; border-radius: 6px; text-align: center;">
           <span style="font-size: 0.7rem; color: var(--text-secondary);">割安スコア</span>
           <div style="font-size: 1rem; font-weight: 800; color: var(--accent-blue);">${s.valuation_score}</div>
+        </div>
+        <div style="flex: 1; background: rgba(0,0,0,0.2); padding: 0.4rem; border-radius: 6px; text-align: center;">
+          <span style="font-size: 0.7rem; color: var(--text-secondary);">総合</span>
+          <div style="font-size: 1rem; font-weight: 800; color: var(--accent-amber);">${s.total_score}</div>
         </div>
       </div>
     </div>

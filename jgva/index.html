@@ -255,10 +255,47 @@
         <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
           <input type="checkbox" id="filter-discovery" onchange="applyScreenerFilters()"> 新規発見(New)のみ
         </label>
+
+        <!-- Sort Selectors (Highest/Lowest) -->
+        <div style="display: flex; align-items: center; gap: 0.4rem; background: rgba(0,0,0,0.18); padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); flex-wrap: wrap;">
+          <label style="font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.3rem; white-space: nowrap;">
+            <i data-lucide="arrow-down-up" style="width: 14px; height: 14px;"></i> 並び替え:
+          </label>
+          <select class="filter-select" id="sort-column" onchange="changeSortColumn(this.value)">
+            <option value="growth_score">成長性スコア</option>
+            <option value="valuation_score">割安度スコア</option>
+            <option value="total_score">総合スコア</option>
+            <option value="op_income_growth_1y">営業利益成長率</option>
+            <option value="sales_growth_1y">売上高成長率</option>
+            <option value="per">PER (株価収益率)</option>
+            <option value="pbr">PBR (純資産倍率)</option>
+            <option value="peg">PEGレシオ</option>
+            <option value="market_cap">時価総額</option>
+            <option value="price">株価</option>
+            <option value="roic">ROIC (投下資本利益率)</option>
+            <option value="dividend_yield">配当利回り</option>
+          </select>
+          <select class="filter-select" id="sort-direction" onchange="changeSortDirection(this.value)">
+            <option value="desc">高い順 (降順 ▼)</option>
+            <option value="asc">低い順 (昇順 ▲)</option>
+          </select>
+        </div>
       </div>
 
-      <div style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-secondary);">
-        検索結果: <strong id="screener-count-badge" style="color: var(--accent-blue);">0</strong> 件の銘柄がヒット
+      <!-- Quick Sort Buttons for Mobile & Desktop -->
+      <div style="display: flex; gap: 0.4rem; margin-bottom: 0.85rem; overflow-x: auto; padding-bottom: 0.3rem; flex-wrap: nowrap;">
+        <span style="font-size: 0.75rem; color: var(--text-secondary); align-self: center; white-space: nowrap; margin-right: 0.2rem;">ワンタップ並び替え:</span>
+        <button class="nav-btn quick-sort-btn active" id="btn-sort-growth" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="setQuickSort('growth_score', 'desc')">成長スコア高い順 ▼</button>
+        <button class="nav-btn quick-sort-btn" id="btn-sort-val" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="setQuickSort('valuation_score', 'desc')">割安スコア高い順 ▼</button>
+        <button class="nav-btn quick-sort-btn" id="btn-sort-total" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="setQuickSort('total_score', 'desc')">総合スコア高い順 ▼</button>
+        <button class="nav-btn quick-sort-btn" id="btn-sort-op" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="setQuickSort('op_income_growth_1y', 'desc')">営業益成長率高い順 ▼</button>
+        <button class="nav-btn quick-sort-btn" id="btn-sort-per" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="setQuickSort('per', 'asc')">低PER割安順 ▲</button>
+        <button class="nav-btn quick-sort-btn" id="btn-sort-mcap" style="padding: 0.3rem 0.7rem; font-size: 0.75rem;" onclick="setQuickSort('market_cap', 'desc')">時価総額大きい順 ▼</button>
+      </div>
+
+      <div style="margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
+        <div>検索結果: <strong id="screener-count-badge" style="color: var(--accent-blue);">0</strong> 件の銘柄がヒット</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);" id="current-sort-display">並び替え: 成長性スコア (高い順 ▼)</div>
       </div>
 
       <!-- Table for Desktop -->
@@ -266,18 +303,18 @@
         <table class="stock-table">
           <thead>
             <tr>
-              <th onclick="sortTable('code')">コード</th>
-              <th onclick="sortTable('name')">銘柄名</th>
-              <th onclick="sortTable('market')">市場</th>
-              <th onclick="sortTable('sector')">業種</th>
-              <th onclick="sortTable('price')">株価</th>
-              <th onclick="sortTable('per')">PER</th>
-              <th onclick="sortTable('pbr')">PBR</th>
-              <th onclick="sortTable('sales_growth_1y')">売上成長</th>
-              <th onclick="sortTable('op_income_growth_1y')">営業益成長</th>
-              <th onclick="sortTable('growth_score')">成長スコア</th>
-              <th onclick="sortTable('valuation_score')">割安スコア</th>
-              <th onclick="sortTable('total_score')">総合</th>
+              <th onclick="sortTable('code')" data-col="code">コード <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('name')" data-col="name">銘柄名 <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('market')" data-col="market">市場 <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('sector')" data-col="sector">業種 <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('price')" data-col="price">株価 <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('per')" data-col="per">PER <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('pbr')" data-col="pbr">PBR <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('sales_growth_1y')" data-col="sales_growth_1y">売上成長 <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('op_income_growth_1y')" data-col="op_income_growth_1y">営業益成長 <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('growth_score')" data-col="growth_score">成長スコア <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('valuation_score')" data-col="valuation_score">割安スコア <span class="sort-indicator"></span></th>
+              <th onclick="sortTable('total_score')" data-col="total_score">総合 <span class="sort-indicator"></span></th>
               <th>分析分類</th>
             </tr>
           </thead>
