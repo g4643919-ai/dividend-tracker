@@ -1,9 +1,9 @@
-name: Daily Dividend Increase Tracker Update
+name: Daily Market Close Auto Update (Dividends & JGVA)
 
 on:
   schedule:
-    # 平日 16:30 JST (07:30 UTC) に自動実行
-    - cron: '30 7 * * 1-5'
+    # 平日 16:00 JST (07:00 UTC) - 東証大引け後に自動実行
+    - cron: '0 7 * * 1-5'
   workflow_dispatch: # 手動実行ボタンも提供
 
 permissions:
@@ -21,14 +21,24 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run disclosure fetcher
+      - name: Install dependencies
         run: |
-          python scripts/fetch_disclosures.py
+          pip install openpyxl requests
+
+      - name: Run Dividend disclosure fetcher
+        run: |
+          python scripts/fetch_disclosures.py || echo "Dividend fetch failed, continuing JGVA..."
+
+      - name: Update JGVA dataset from JPX & recalculate scores
+        run: |
+          python jgva/scripts/download_jpx.py || echo "JPX download fallback to existing"
+          python jgva/scripts/build_dataset.py
 
       - name: Commit and push updated data
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git add data/disclosures.json
-          git diff-index --quiet HEAD || git commit -m "Auto-update: Dividend disclosures $(date +'%Y-%m-%d %H:%M JST')"
+          git add data/disclosures.json jgva/data/data_j.xlsx jgva/data/stocks_data.js
+          git diff-index --quiet HEAD || git commit -m "Auto-update: Market close daily update $(date +'%Y-%m-%d %H:%M JST')"
           git push
+
