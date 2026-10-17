@@ -9,8 +9,12 @@ let currentTab = 'safety'; // 初期表示：10年減配なし安心度優先
 document.addEventListener('DOMContentLoaded', async () => {
     await loadData();
     setupEventListeners();
-    renderApp();
+    renderStocksGrid();
 });
+
+function renderApp() {
+    renderStocksGrid();
+}
 
 // JSONデータの読み込み
 async function loadData() {
