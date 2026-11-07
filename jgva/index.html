@@ -2,6 +2,9 @@
 <html lang="ja" data-theme="dark">
 <head>
   <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JAPAN GROWTH VALUE AI (JGVA) - 日本株・将来成長×割安企業発掘AI</title>
   
@@ -42,6 +45,9 @@
       </nav>
 
       <div class="header-actions">
+        <button class="nav-btn" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.4); color: var(--accent-blue);" onclick="forceReloadLatestData()" title="最新データを強制再取得">
+          <i data-lucide="refresh-cw"></i> <span>最新取得</span>
+        </button>
         <button class="theme-btn" id="theme-toggle-btn" title="テーマ切り替え" onclick="toggleTheme()">
           <i data-lucide="sun"></i>
         </button>
@@ -92,7 +98,7 @@
         </div>
         <div class="kpi-card" onclick="openUpdateInfoModal()" style="cursor: pointer;" title="クリックして更新頻度・運用仕様を確認">
           <div class="kpi-title"><i data-lucide="clock"></i> 最新分析更新日時 <span class="badge" style="background: rgba(56,189,248,0.2); color: var(--accent-blue); margin-left: auto; font-size: 0.65rem;">更新仕様</span></div>
-          <div class="kpi-value" style="font-size: 1.2rem; margin-top: 0.4rem;" id="kpi-updated-at">2026-10-11 15:30</div>
+          <div class="kpi-value" style="font-size: 1.2rem; margin-top: 0.4rem;" id="kpi-updated-at">データ読込中...</div>
           <div class="kpi-subtext" style="color: var(--accent-blue);">日次/四半期/月次更新仕様を表示 →</div>
         </div>
       </div>
@@ -496,9 +502,29 @@
     </div>
   </div>
 
-  <!-- Data Script -->
-  <script src="data/stocks_data.js"></script>
-  <!-- Application Controller JS -->
-  <script src="app.js"></script>
+  <!-- Dynamic Data Loader with Cache Busting -->
+  <script>
+    (function() {
+      const v = Date.now();
+      const sData = document.createElement('script');
+      sData.src = 'data/stocks_data.js?v=' + v;
+      sData.onload = function() {
+        const sApp = document.createElement('script');
+        sApp.src = 'app.js?v=' + v;
+        document.body.appendChild(sApp);
+      };
+      sData.onerror = function() {
+        const sDataFb = document.createElement('script');
+        sDataFb.src = 'data/stocks_data.js';
+        sDataFb.onload = function() {
+          const sAppFb = document.createElement('script');
+          sAppFb.src = 'app.js';
+          document.body.appendChild(sAppFb);
+        };
+        document.body.appendChild(sDataFb);
+      };
+      document.body.appendChild(sData);
+    })();
+  </script>
 </body>
 </html>

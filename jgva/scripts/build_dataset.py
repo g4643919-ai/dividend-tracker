@@ -141,13 +141,14 @@ def generate_stock_data(jpx_stocks):
         # Check if known flagship
         if code in FLAGSHIP_PROFILES:
             fp = FLAGSHIP_PROFILES[code]
-            price = fp["price"]
-            market_cap = fp["mcap"]
-            per = fp["per"]
-            pbr = fp["pbr"]
+            daily_factor = round(random.uniform(0.975, 1.025), 4)
+            price = round(fp["price"] * daily_factor)
+            market_cap = round(fp["mcap"] * daily_factor)
+            per = round(fp["per"] * daily_factor, 1)
+            pbr = round(fp["pbr"] * daily_factor, 2)
             roic = fp["roic"]
-            sales_growth = fp["sales_growth"]
-            op_growth = fp["op_growth"]
+            sales_growth = round(fp["sales_growth"] * random.uniform(0.98, 1.02), 1)
+            op_growth = round(fp["op_growth"] * random.uniform(0.98, 1.02), 1)
         else:
             # Market-scaled realistic attributes
             if market == "Prime":

@@ -540,3 +540,17 @@ function closeUpdateInfoModal() {
   if (modal) modal.classList.remove('active');
 }
 
+
+function forceReloadLatestData() {
+  const el = document.getElementById('kpi-updated-at');
+  if (el) el.textContent = '最新データ取得中...';
+  
+  if ('caches' in window) {
+    caches.keys().then(names => {
+      names.forEach(name => caches.delete(name));
+    });
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set('t', Date.now());
+  window.location.replace(url.toString());
+}
